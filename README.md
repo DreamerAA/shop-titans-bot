@@ -32,11 +32,40 @@ This tool helps automate routine tasks like selling and crafting while you sleep
 
 ## 📦 Installation
 
+- Create and activate a virtual environment:
+
+```bash
+python -m venv env
+source env/bin/activate  # or env\Scripts\activate on Windows
+```
+
+- Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 You may need Python 3.8+ and optionally a GPU-enabled system for better OCR speed (via EasyOCR).
+
+## ⚙️ Configuration
+
+Before running the bot, create a `config.yaml` file in the project root.
+
+You can start by copying the provided template:
+
+```bash
+cp configs/template.yaml configs/my_config.yaml
+```
+
+Then adjust the settings to fit your screen setup and resolution:
+
+- monitor_index: Which screen to capture (1 or 2).
+- regions: Screen coordinates for energy, cost, production readiness, etc.
+- colors: RGB values used to detect UI elements (you don't have to change it).
+
+The bot will automatically load these settings at startup.
+
+---
 
 ## 💻 Running the Bot
 
