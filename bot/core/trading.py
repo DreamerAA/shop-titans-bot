@@ -2,20 +2,20 @@
 
 import time
 import cv2
-from logic.status import get_status
-from ocr import (
+from bot.core.status import get_status
+from bot.matching.ocr import (
     extract_cost,
     extract_avaliable_energy,
     extract_max_energy,
     extract_energy_for_raise_price,
     extract_energy_for_lower_price,
 )
-from interaction import find_and_click, find
-from settings import GameStatus
-from screen import get_screen_shot
-from matcher import find_dialog_box_pos
-from utility import pic_path
-from mouse_control import set_mouse_position, click_left
+from bot.control.interaction import find_and_click, find
+from bot.settings import GameStatus
+from bot.screen import get_screen_shot
+from bot.matching.matcher import find_dialog_box_pos
+from bot.utility import pic_path
+from bot.control.mouse import set_mouse_position, click_left
 
 
 def go_chat() -> bool:

@@ -2,9 +2,9 @@
 
 import re
 from typing import Tuple, List
-from settings import settings
-from utility import color_filter
-from screen import get_screen_shot, get_region_from_screen
+from bot.settings import settings
+from bot.utility import color_filter
+from bot.screen import get_screen_shot, get_region_from_screen
 import numpy as np
 
 
@@ -67,7 +67,7 @@ def extract_number_with_commas(
 
 def extract_cost() -> int:
     """Извлекает стоимость из области cost_borders."""
-    from screen import get_screen_shot, get_region_from_screen
+    from bot.screen import get_screen_shot, get_region_from_screen
 
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.cost_borders)
@@ -79,7 +79,7 @@ def extract_cost() -> int:
 
 def extract_avaliable_energy() -> int:
     """Извлекает доступную энергию (до слэша)."""
-    from screen import get_screen_shot, get_region_from_screen
+    from bot.screen import get_screen_shot, get_region_from_screen
 
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.energy_borders)
@@ -92,7 +92,7 @@ def extract_avaliable_energy() -> int:
 
 def extract_max_energy() -> int:
     """Извлекает максимальную энергию (после слэша)."""
-    from screen import get_screen_shot, get_region_from_screen
+    from bot.screen import get_screen_shot, get_region_from_screen
 
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.energy_borders)

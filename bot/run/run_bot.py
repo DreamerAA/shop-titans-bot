@@ -1,8 +1,12 @@
 import time
-from logic.status import check_reconnect
-from logic.production import assemble_products, set_split_production, set_one_production
-from logic.trading import step_trading
-from settings import settings
+from bot.core.status import check_reconnect
+from bot.core.production import (
+    assemble_products,
+    set_split_production,
+    set_one_production,
+)
+from bot.core.trading import step_trading
+from bot.settings import settings
 
 
 def run_bot():

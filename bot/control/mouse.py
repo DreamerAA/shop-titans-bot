@@ -1,8 +1,8 @@
-from settings import settings
+from bot.settings import settings
 from typing import Tuple
 from pynput.mouse import Button
 
-from settings import settings
+from bot.settings import settings
 from typing import Tuple
 from pynput.mouse import Button
 

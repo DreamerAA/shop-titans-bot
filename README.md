@@ -41,7 +41,7 @@ You may need Python 3.8+ and optionally a GPU-enabled system for better OCR spee
 ## 💻 Running the Bot
 
 ```bash
-python -m run_bot.py
+python -m bot.run.run_bot
 ```
 
 You can configure your preferences in the `settings.py` file or through command-line arguments (feature in progress).
@@ -52,25 +52,31 @@ You can configure your preferences in the `settings.py` file or through command-
 
 ```
 shop-titans-bot/
-├── logic/                      # Core logic modules
-│   ├── production.py           # Handles crafting logic and queueing of items
-│   ├── status.py               # Detects current UI state (main screen, dialogs, etc.)
-│   └── trading.py              # Automates selling to regular customers
-├── screenshots/                # Saved screenshots for debugging or testing
-├── pictures/                   # Template images used for matching
-├── tests/                      # Optional test scripts
-├── interaction.py              # Coordinates UI interaction logic and flow control
-├── matcher.py                  # Template matching functions
-├── mouse_control.py            # Mouse interaction: clicking, movement, confirmations
-├── run_bot.py                  # Main entry point to start the bot
-├── run_check.py                # Debug mode: run specific checks or visual outputs
-├── run_optimization.py         # Parameter tuning for OCR or image preprocessing
-├── screen.py                   # Screen capture utilities and region extraction
-├── settings.py                 # Configuration file: thresholds, colors, regions, paths
-├── utility.py                  # Helper utilities: logging, image saving, file IO
-├── requirements.txt            # Python dependencies
-├── README.md                   # Project documentation
-└── LICENSE                     # Project license (MIT)
+├── bot/
+│   ├── control/               # Input/output handling (e.g., mouse control, click simulation)
+│   │   ├── mouse.py           # Functions to move/click/drag the mouse
+│   │   └── interaction.py     # High-level interaction logic (click sequences, UI triggers)
+│   ├── core/                  # Core gameplay logic: trading, production, state management
+│   │   ├── production.py      # Automated crafting setup and product collection
+│   │   ├── trading.py         # Customer interaction and selling logic
+│   │   └── status.py          # Game state detection (main screen, dialogs, etc.)
+│   ├── data/
+│   │   ├── templates/         # Template images for in-game UI and item detection
+│   │   └── test_images/       # Static test images for OCR and image matching tuning
+│   ├── matching/              # Image processing and screen recognition utilities
+│   │   ├── matcher.py         # Template matching, pixel color filtering
+│   │   └── ocr.py             # Text extraction from screen using OCR (EasyOCR)
+│   ├── run/                   # Entrypoints for running the bot and tools
+│   │   ├── run_bot.py         # Main loop that runs the bot continuously
+│   │   ├── run_check.py       # Diagnostics or debug mode to verify image detection
+│   │   └── run_optimization.py# Tool to optimize OCR parameters (e.g., grayscale thresholds)
+│   ├── screen.py              # Screenshot capture and region slicing
+│   ├── settings.py            # Configuration and runtime constants
+│   └── utility.py             # Generic helper functions used across modules
+├── .gitignore                 # Git exclusions
+├── LICENSE                    # Project license (MIT)
+├── README.md                  # Documentation and usage instructions
+└── requirements.txt           # Python dependencies
 ```
 
 ---

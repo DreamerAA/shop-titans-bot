@@ -1,16 +1,16 @@
 import time
-from logic.status import (
+from bot.core.status import (
     check_reconnect,
     check_ending_cells,
     check_is_main_window,
     check_not_enough_resources,
 )
-from interaction import find_and_click, to_main
-from mouse_control import set_mouse_position, click_left
+from bot.control.interaction import find_and_click, to_main
+from bot.control.mouse import set_mouse_position, click_left
 
-from screen import get_screen_shot, get_region_from_screen, save_part_screen
-from settings import settings
-from utility import color_filter
+from bot.screen import get_screen_shot, get_region_from_screen, save_part_screen
+from bot.settings import settings
+from bot.utility import color_filter
 
 
 def check_production_ready() -> bool:
