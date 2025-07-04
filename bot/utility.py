@@ -6,7 +6,7 @@ from typing import Tuple, Optional
 
 def pic_path(name: str) -> str:
     """Путь к шаблону изображения по имени."""
-    return f"./pictures/{name}.png"
+    return f"./bot/data/templates/{name}.png"
 
 
 def save_cv_image(name: str, image, folder="screenshots"):

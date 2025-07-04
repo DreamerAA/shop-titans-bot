@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import mss
-from settings import settings
+from bot.settings import settings
 
 
 def get_screen_shot(monitor=None) -> np.ndarray:

@@ -1,7 +1,7 @@
 # status.py
 
-from settings import GameStatus
-from interaction import (
+from bot.settings import GameStatus
+from bot.control.interaction import (
     find,
     find_and_click,
 )  # если они ещё в main_logic, иначе — импортировать по-новому

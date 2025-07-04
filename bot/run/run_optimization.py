@@ -4,8 +4,8 @@ from os.path import isfile, join
 from utility import load_cv_image
 
 from utility import color_filter
-from settings import settings
-from ocr import extract_number_with_commas
+from bot.settings import settings
+from bot.matching.ocr import extract_number_with_commas
 
 
 def find_best_g(folder):
@@ -19,7 +19,7 @@ def find_best_g(folder):
     print("Start")
     results = {}
     results_counter = {}
-    full_folder = join("screenshots", folder)
+    full_folder = join("bot", "data", "test_images", folder)
     expecteds = [f[:-4] for f in listdir(full_folder) if isfile(join(full_folder, f))]
     count_files = len(expecteds)
     for name in expecteds:
