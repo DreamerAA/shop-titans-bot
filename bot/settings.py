@@ -27,11 +27,31 @@ class CounterWithCurrent:
         return self.current
 
 
+class Cache:
+    key_last_screen_shot: str = "last_screen_shot"
+
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, key, default=None):
+        return self._cache.get(key, default)
+
+    def set(self, key, value):
+        self._cache[key] = value
+
+    def remove(self, key):
+        if key in self._cache:
+            del self._cache[key]
+
+    def clear(self):
+        self._cache.clear()
+
+
 class Settings:
     def __init__(self, config_path="configs/template.yaml"):
         with open(config_path, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
-
+        self.cache = Cache()
         self.mouse = Controller()
         self.sct = mss.mss()
         self.monitor = self.sct.monitors[cfg.get("monitor_index", 1)]
@@ -65,6 +85,20 @@ class Settings:
     def ready_position(self) -> Tuple[int, int]:
         x1, x2, y1, y2 = self.ready_borders
         return (x1 + x2) // 2, (y1 + y2) // 2
+
+    def invalidate_screeenshot_cache(self):
+        """Удалить кэш скриншота экрана."""
+        self.cache.remove(self.cache.key_last_screen_shot)
+        print("🗑️ Screenshot cache invalidated.")
+
+    def save_screenshot_cache(self, img):
+        """Сохранить скриншот в кэш."""
+        self.cache.set(self.cache.key_last_screen_shot, img)
+        print("🖼️ Screenshot cache updated.")
+
+    def get_screenshot_cached(self):
+        """Получить скриншот из кэша."""
+        return self.cache.get(self.cache.key_last_screen_shot, None)
 
 
 _settings_instance = None

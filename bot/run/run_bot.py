@@ -51,6 +51,7 @@ def run_bot():
         )
 
         print(f"⏳ Waiting {settings.wt_cycle_min} minutes before next cycle...")
+        settings.invalidate_screeenshot_cache()  # Очистка кэша скриншота перед следующим циклом
         time.sleep(60 * settings.wt_cycle_min)
 
 

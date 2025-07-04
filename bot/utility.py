@@ -10,7 +10,7 @@ def pic_path(name: str) -> str:
     return f"./bot/data/templates/{name}.png"
 
 
-def save_cv_image(name: str, image, folder="screenshots"):
+def save_cv_image(name: str, image, folder="./bot/data/"):
     """Сохраняет изображение (RGB) в указанную папку."""
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, f"{name}.png")
