@@ -6,7 +6,7 @@ from typing import List, Tuple
 import numpy as np
 
 from bot.screen import get_region_from_screen, get_screen_shot
-from bot.settings import settings
+from bot.settings import get_settings
 from bot.utility import color_filter
 
 
@@ -18,7 +18,7 @@ def find_text_position(screen: np.ndarray, target_texts: str | List[str]) -> Tup
     def no_cyrillic(text: str) -> bool:
         return re.search(r"[а-яА-ЯёЁ]", text) is None
 
-    results = settings.ru_reader.readtext(screen)
+    results = get_settings().ru_reader.readtext(screen)
 
     for bbox, text, confidence in results:
         if no_cyrillic(text):
@@ -40,7 +40,7 @@ def extract_number_with_commas(
     """Извлекает числа, используя английский OCR.
     Поддерживает запятые и дроби."""
     processed = preprocess_func(screen) if preprocess_func else screen
-    results = settings.en_reader.readtext(processed)
+    results = get_settings().en_reader.readtext(processed)
 
     pattern = re.compile(r"^[+-]?\d{1,3}(,\d{3})*(/\d{1,3}(,\d{3})*)?$|^-?\d+(\/\d+)?$")
     numbers = []
@@ -68,8 +68,7 @@ def extract_number_with_commas(
 
 def extract_cost() -> int:
     """Извлекает стоимость из области cost_borders."""
-    from bot.screen import get_region_from_screen, get_screen_shot
-
+    settings = get_settings()
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.cost_borders)
     filtered = color_filter(region, settings.rgb_cost)
@@ -81,8 +80,7 @@ def extract_cost() -> int:
 
 def extract_avaliable_energy() -> int:
     """Извлекает доступную энергию (до слэша)."""
-    from bot.screen import get_region_from_screen, get_screen_shot
-
+    settings = get_settings()
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.energy_borders)
     result = extract_number_with_commas(
@@ -95,8 +93,8 @@ def extract_avaliable_energy() -> int:
 
 def extract_max_energy() -> int:
     """Извлекает максимальную энергию (после слэша)."""
-    from bot.screen import get_region_from_screen, get_screen_shot
 
+    settings = get_settings()
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.energy_borders)
     result = extract_number_with_commas(
@@ -132,10 +130,12 @@ def extract_energy_for_price(borders, rgb_1, rgb_2=None) -> int:
 
 
 def extract_energy_for_raise_price() -> int:
+    settings = get_settings()
     return extract_energy_for_price(
         settings.raise_borders, settings.rgb_raise_unav, settings.rgb_raise_av
     )
 
 
 def extract_energy_for_lower_price() -> int:
+    settings = get_settings()
     return extract_energy_for_price(settings.lower_borders, settings.rgb_lower)

@@ -16,7 +16,7 @@ from bot.matching.ocr import (
     extract_max_energy,
 )
 from bot.screen import get_screen_shot
-from bot.settings import GameStatus, settings
+from bot.settings import GameStatus, get_settings
 from bot.utility import pic_path
 
 
@@ -38,7 +38,9 @@ def step_trading():
     Один шаг торгового цикла: оценка диалога, принятие решения,
     клик по нужной кнопке.
     """
-    if get_status() != GameStatus.MAIN_WINDOW:
+    status = get_status()
+    if status != GameStatus.MAIN_WINDOW:
+        print("Current status is ", status)
         raise RuntimeError("Not in main window, cannot start trading")
 
     screen = get_screen_shot()
@@ -50,7 +52,7 @@ def step_trading():
 
     set_mouse_position(dialog_pos)
     click_left()
-    time.sleep(settings.wt_click_sec)
+    time.sleep(get_settings().wt_click_sec)
 
     status = get_status()
     print("💬 Status:", status)

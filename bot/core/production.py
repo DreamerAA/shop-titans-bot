@@ -11,11 +11,12 @@ from bot.core.status import (
     get_status,
 )
 from bot.screen import get_region_from_screen, get_screen_shot
-from bot.settings import settings
+from bot.settings import get_settings
 from bot.utility import color_filter
 
 
 def check_production_ready() -> bool:
+    settings = get_settings()
     screen = get_screen_shot()
     part_screen = get_region_from_screen(screen, settings.ready_borders)
     result = color_filter(
@@ -40,6 +41,7 @@ def assemble_products() -> bool:
     Забирает произведенные предметы из производственных ячеек.
     Возвращает True, если что-то было забрано.
     """
+    settings = get_settings()
     was_click = False
     while check_production_ready():
         print("has ready production")
@@ -69,6 +71,12 @@ def set_one_production(names: list[str]):
     check_reconnect()
     if get_status() != GameStatus.MAIN_WINDOW:
         raise RuntimeError("Not in main window, cannot start production")
+
+    if len(names) == 0:
+        return
+
+    if find_and_click("create") is None:
+        raise RuntimeError("Не удалось открыть главное меню для производства.")
 
     if check_ending_cells():
         to_main()
@@ -102,6 +110,11 @@ def set_split_production(data: list[tuple[str, int]]):
     if get_status() != GameStatus.MAIN_WINDOW:
         raise RuntimeError("Not in main window, cannot start production")
 
+    if len(data) == 0:
+        return
+
+    if find_and_click("create") is None:
+        raise RuntimeError("Не удалось открыть главное меню для производства.")
     for name, count in data:
         for _ in range(count):
             if check_ending_cells():

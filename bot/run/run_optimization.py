@@ -5,11 +5,11 @@ import cv2
 from utility import color_filter, load_cv_image
 
 from bot.matching.ocr import extract_number_with_commas
-from bot.settings import settings
+from bot.settings import get_settings
 
 
 def find_best_g(folder):
-
+    settings = get_settings()
     methods = {
         "default": lambda x: cv2.threshold(x, 165, 175, cv2.THRESH_BINARY)[1],
         "coloring": lambda x: color_filter(x, settings.rgb_raise_unav),

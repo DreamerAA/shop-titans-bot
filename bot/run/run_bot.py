@@ -1,3 +1,4 @@
+import argparse
 import time
 import traceback
 
@@ -5,7 +6,7 @@ from bot.core.production import set_split_production  # noqa: E501
 from bot.core.production import assemble_products, set_one_production
 from bot.core.status import check_reconnect
 from bot.core.trading import step_trading
-from bot.settings import settings
+from bot.settings import get_settings
 
 
 def run_bot():
@@ -38,12 +39,12 @@ def run_bot():
                 # Примеры шаблонов. Уберите комментарии с нужных строк
                 # или добавьте свои.
                 # "moonstone/perfect",
-                "moonstone/excellent",
-                # "obj/stone_crusher",
+                # "moonstone/excellent",
                 # "obj/sword_damocles",
                 # "obj/snake_elixir",
                 # "obj/pliers_ash_like",
                 "obj/archivist_glasses",
+                "obj/stone_crusher",
                 # "obj/grimoire_collection",
                 # "moonstone/big",
             ]
@@ -54,6 +55,17 @@ def run_bot():
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Run Shop Titans bot")
+    parser.add_argument(
+        "--config", type=str, default="configs/template.yaml", help="Path to config file"
+    )
+
+    args = parser.parse_args()
+
+    # Пример: использовать путь до конфига
+    settings = get_settings(config_path=args.config)
+
     try:
         print("🖱 Mouse position on start:", settings.mouse.position)
         run_bot()
