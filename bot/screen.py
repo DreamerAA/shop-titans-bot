@@ -2,12 +2,12 @@ import cv2
 import mss
 import numpy as np
 
-from bot.settings import settings
+from bot.settings import get_settings
 
 
 def get_screen_shot(monitor=None) -> np.ndarray:
     """Сделать скриншот с экрана и вернуть RGB-массив."""
-    monitor = monitor or settings.monitor
+    monitor = monitor or get_settings().monitor
     with mss.mss() as sct:
         screenshot = sct.grab(monitor)
     return cv2.cvtColor(np.array(screenshot), cv2.COLOR_BGR2RGB)

@@ -67,4 +67,11 @@ class Settings:
         return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-settings = Settings()
+_settings_instance = None
+
+
+def get_settings(config_path="config.yaml"):
+    global _settings_instance
+    if _settings_instance is None:
+        _settings_instance = Settings(config_path=config_path)
+    return _settings_instance
