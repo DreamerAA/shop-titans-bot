@@ -23,7 +23,7 @@ def find_and_click(data: str, method: str = "template", **kwargs):
     if pos is not None:
         set_mouse_position(pos)
         click_left()
-        time.sleep(1.5)
+        time.sleep(settings.wt_click_sec)
         print("FOUNDED:", data)
     else:
         print("NOT FOUNDED:", data)

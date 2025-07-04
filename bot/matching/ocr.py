@@ -73,7 +73,8 @@ def extract_cost() -> int:
     region = get_region_from_screen(screen, settings.cost_borders)
     filtered = color_filter(region, settings.rgb_cost)
     result = extract_number_with_commas(filtered)
-    assert len(result) == 1
+    if len(result) != 1:
+        raise ValueError("Не удалось извлечь стоимость, результат: " + str(result))
     return int(result[0][0])
 
 
@@ -86,7 +87,10 @@ def extract_avaliable_energy() -> int:
     result = extract_number_with_commas(
         region, preprocess_func=lambda x: color_filter(x, settings.rgb_energy)
     )
-    assert len(result) == 1
+    if len(result) != 1:
+        raise ValueError(
+            "Не удалось извлечь доступную энергию, результат: " + str(result)
+        )
     return int(result[0][0].split("/")[0])
 
 
@@ -99,7 +103,10 @@ def extract_max_energy() -> int:
     result = extract_number_with_commas(
         region, preprocess_func=lambda x: color_filter(x, settings.rgb_energy)
     )
-    assert len(result) == 1
+    if len(result) != 1:
+        raise ValueError(
+            "Не удалось извлечь максимальную энергию, результат: " + str(result)
+        )
     return int(result[0][0].split("/")[1])
 
 
@@ -124,7 +131,8 @@ def extract_energy_for_price(borders, rgb_1, rgb_2=None) -> int:
         )
         results = res1 + res2
 
-    assert results, "Не удалось извлечь значение энергии"
+    if not results:
+        raise ValueError("Не удалось извлечь энергию для цены")
     best = max(results, key=lambda r: r[2])  # по confidence
     return int(best[0])
 

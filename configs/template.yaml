@@ -1,0 +1,25 @@
+# Monitor index (1 — usually primary, 2 — secondary)
+monitor_index: 1
+
+regions:
+  energy_borders: [2967, 3165, 72, 128]
+  cost_borders: [825, 3000, 505, 660]
+  raise_borders: [2669, 2800, 1015, 1085]
+  lower_borders: [2590, 2690, 830, 895]
+  ready_borders: [3346, 3532, 1854, 1902]
+
+colors:
+  rgb_ready_upper: [255, 242, 146]
+  rgb_ready_lower: [250, 190, 20]
+  rgb_raise_unav: [178, 178, 178]
+  rgb_raise_av: [231, 104, 106]
+  rgb_lower: [255, 255, 255]
+  rgb_cost: [255, 210, 0]
+  rgb_energy: [255, 255, 255]
+
+# Wait time configuration (in seconds or minutes)
+wait_time_cycle_min: 2
+wait_time_click_sec: 1.5
+wait_time_reconnection_sec: 15
+wait_time_status_sec: 1.5
+wait_time_production_sec: 1

@@ -4,6 +4,8 @@ from bot.core.status import (
     check_ending_cells,
     check_is_main_window,
     check_not_enough_resources,
+    get_status,
+    GameStatus,
 )
 from bot.control.interaction import find_and_click, to_main
 from bot.control.mouse import set_mouse_position, click_left
@@ -41,7 +43,7 @@ def assemble_products() -> bool:
         print("has ready production")
         set_mouse_position(settings.ready_position)
         click_left()
-        time.sleep(1.0)
+        time.sleep(settings.wt_production_sec)
 
         while find_and_click("ok") is not None:
             print("click_on_ok", True)
@@ -63,7 +65,8 @@ def set_one_production(names: list[str]):
     i = 0
     index = i % len(names)
     check_reconnect()
-    assert find_and_click("create")
+    if get_status() != GameStatus.MAIN_WINDOW:
+        raise RuntimeError("Not in main window, cannot start production")
 
     if check_ending_cells():
         to_main()
@@ -94,7 +97,8 @@ def set_split_production(data: list[tuple[str, int]]):
     Производит указанные предметы поштучно (несколько наименований).
     data — список кортежей (имя, количество).
     """
-    assert find_and_click("create")
+    if get_status() != GameStatus.MAIN_WINDOW:
+        raise RuntimeError("Not in main window, cannot start production")
 
     for name, count in data:
         for _ in range(count):

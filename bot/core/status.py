@@ -1,6 +1,6 @@
 # status.py
 
-from bot.settings import GameStatus
+from bot.settings import GameStatus, settings
 from bot.control.interaction import (
     find,
     find_and_click,
@@ -28,14 +28,17 @@ def check_reconnect():
     pos = find_and_click("reconnect")
     while find("create") is None and pos is not None:
         print("🔁 Переподключение...")
-        time.sleep(15)
+        time.sleep(settings.wt_reconnection_sec)
         pos = find_and_click("reconnect")
-    assert find("create") is not None or find("reconnect") is None
+    if not (find("create") is not None or find("reconnect") is None):
+        raise RuntimeError(
+            "Не удалось переподключиться. Проверьте соединение с интернетом."
+        )
 
 
 def get_status() -> GameStatus:
     """Определяет текущее состояние интерфейса игры."""
-    time.sleep(1.5)
+    time.sleep(settings.wt_status_sec)  # Задержка для стабильности определения статуса
     if check_is_main_window():
         return GameStatus.MAIN_WINDOW
     if find("special_offer"):
