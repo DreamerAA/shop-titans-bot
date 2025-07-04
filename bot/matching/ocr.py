@@ -1,16 +1,16 @@
 # ocr.py
 
 import re
-from typing import Tuple, List
-from bot.settings import settings
-from bot.utility import color_filter
-from bot.screen import get_screen_shot, get_region_from_screen
+from typing import List, Tuple
+
 import numpy as np
 
+from bot.screen import get_region_from_screen, get_screen_shot
+from bot.settings import settings
+from bot.utility import color_filter
 
-def find_text_position(
-    screen: np.ndarray, target_texts: str | List[str]
-) -> Tuple[int, int] | None:
+
+def find_text_position(screen: np.ndarray, target_texts: str | List[str]) -> Tuple[int, int] | None:
     """Ищет позицию текста на изображении, используя EasyOCR."""
     if isinstance(target_texts, str):
         target_texts = [target_texts]
@@ -37,7 +37,8 @@ def extract_number_with_commas(
     screen: np.ndarray,
     preprocess_func=None,
 ) -> List[Tuple[str, Tuple[int, int], float]]:
-    """Извлекает числа, используя английский OCR. Поддерживает запятые и дроби."""
+    """Извлекает числа, используя английский OCR.
+    Поддерживает запятые и дроби."""
     processed = preprocess_func(screen) if preprocess_func else screen
     results = settings.en_reader.readtext(processed)
 
@@ -67,7 +68,7 @@ def extract_number_with_commas(
 
 def extract_cost() -> int:
     """Извлекает стоимость из области cost_borders."""
-    from bot.screen import get_screen_shot, get_region_from_screen
+    from bot.screen import get_region_from_screen, get_screen_shot
 
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.cost_borders)
@@ -80,7 +81,7 @@ def extract_cost() -> int:
 
 def extract_avaliable_energy() -> int:
     """Извлекает доступную энергию (до слэша)."""
-    from bot.screen import get_screen_shot, get_region_from_screen
+    from bot.screen import get_region_from_screen, get_screen_shot
 
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.energy_borders)
@@ -88,15 +89,13 @@ def extract_avaliable_energy() -> int:
         region, preprocess_func=lambda x: color_filter(x, settings.rgb_energy)
     )
     if len(result) != 1:
-        raise ValueError(
-            "Не удалось извлечь доступную энергию, результат: " + str(result)
-        )
+        raise ValueError("Не удалось извлечь доступную энергию, результат: " + str(result))
     return int(result[0][0].split("/")[0])
 
 
 def extract_max_energy() -> int:
     """Извлекает максимальную энергию (после слэша)."""
-    from bot.screen import get_screen_shot, get_region_from_screen
+    from bot.screen import get_region_from_screen, get_screen_shot
 
     screen = get_screen_shot()
     region = get_region_from_screen(screen, settings.energy_borders)
@@ -104,9 +103,8 @@ def extract_max_energy() -> int:
         region, preprocess_func=lambda x: color_filter(x, settings.rgb_energy)
     )
     if len(result) != 1:
-        raise ValueError(
-            "Не удалось извлечь максимальную энергию, результат: " + str(result)
-        )
+        raise ValueError("Не удалось извлечь максимальную энергию, результат: " + str(result))
+
     return int(result[0][0].split("/")[1])
 
 
@@ -123,12 +121,8 @@ def extract_energy_for_price(borders, rgb_1, rgb_2=None) -> int:
             region, preprocess_func=lambda x: color_filter(x, rgb_1)
         )
     else:
-        res1 = extract_number_with_commas(
-            region, preprocess_func=lambda x: color_filter(x, rgb_1)
-        )
-        res2 = extract_number_with_commas(
-            region, preprocess_func=lambda x: color_filter(x, rgb_2)
-        )
+        res1 = extract_number_with_commas(region, preprocess_func=lambda x: color_filter(x, rgb_1))
+        res2 = extract_number_with_commas(region, preprocess_func=lambda x: color_filter(x, rgb_2))
         results = res1 + res2
 
     if not results:

@@ -1,11 +1,11 @@
-import yaml
-from pathlib import Path
 from enum import Enum, auto
-from typing import Tuple
 from itertools import count
-from pynput.mouse import Controller
-import mss
+from typing import Tuple
+
 import easyocr
+import mss
+import yaml
+from pynput.mouse import Controller
 
 
 class GameStatus(Enum):

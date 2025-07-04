@@ -1,0 +1,24 @@
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["bot"]
+skip = ["venv", ".venv"]
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = false

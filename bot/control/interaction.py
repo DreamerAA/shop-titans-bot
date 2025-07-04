@@ -1,13 +1,14 @@
 # interaction.py
 # для find, find_and_click — взаимодействие с экраном на уровне поиска
 
-from bot.screen import get_screen_shot
-from bot.utility import pic_path
+import time
+
+from bot.control.mouse import click_left, set_mouse_position
 from bot.matching.matcher import find_template
 from bot.matching.ocr import find_text_position
+from bot.screen import get_screen_shot
 from bot.settings import settings
-from bot.control.mouse import set_mouse_position, click_left
-import time
+from bot.utility import pic_path
 
 
 def find(data: str, method: str = "template", **kwargs):

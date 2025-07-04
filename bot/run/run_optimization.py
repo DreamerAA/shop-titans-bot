@@ -1,11 +1,11 @@
-import cv2
 from os import listdir
 from os.path import isfile, join
-from utility import load_cv_image
 
-from utility import color_filter
-from bot.settings import settings
+import cv2
+from utility import color_filter, load_cv_image
+
 from bot.matching.ocr import extract_number_with_commas
+from bot.settings import settings
 
 
 def find_best_g(folder):
