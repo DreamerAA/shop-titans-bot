@@ -1,10 +1,8 @@
-from bot.settings import settings
 from typing import Tuple
+
 from pynput.mouse import Button
 
 from bot.settings import settings
-from typing import Tuple
-from pynput.mouse import Button
 
 
 def set_mouse_position(position: Tuple[int, int]):

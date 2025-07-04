@@ -1,16 +1,16 @@
 import time
+
+from bot.control.interaction import find_and_click, to_main
+from bot.control.mouse import click_left, set_mouse_position
 from bot.core.status import (
-    check_reconnect,
+    GameStatus,
     check_ending_cells,
     check_is_main_window,
     check_not_enough_resources,
+    check_reconnect,
     get_status,
-    GameStatus,
 )
-from bot.control.interaction import find_and_click, to_main
-from bot.control.mouse import set_mouse_position, click_left
-
-from bot.screen import get_screen_shot, get_region_from_screen, save_part_screen
+from bot.screen import get_region_from_screen, get_screen_shot
 from bot.settings import settings
 from bot.utility import color_filter
 
@@ -19,7 +19,9 @@ def check_production_ready() -> bool:
     screen = get_screen_shot()
     part_screen = get_region_from_screen(screen, settings.ready_borders)
     result = color_filter(
-        part_screen, upper=settings.rgb_ready_upper, lower=settings.rgb_ready_lower
+        part_screen,
+        upper=settings.rgb_ready_upper,
+        lower=settings.rgb_ready_lower,
     )
     results = settings.ru_reader.readtext(result)
     if len(results) != 1:

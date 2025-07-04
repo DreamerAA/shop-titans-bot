@@ -1,11 +1,9 @@
 # status.py
 
-from bot.settings import GameStatus, settings
-from bot.control.interaction import (
-    find,
-    find_and_click,
-)  # если они ещё в main_logic, иначе — импортировать по-новому
 import time
+
+from bot.control.interaction import find, find_and_click
+from bot.settings import GameStatus, settings
 
 
 def check_is_main_window() -> bool:
@@ -31,9 +29,7 @@ def check_reconnect():
         time.sleep(settings.wt_reconnection_sec)
         pos = find_and_click("reconnect")
     if not (find("create") is not None or find("reconnect") is None):
-        raise RuntimeError(
-            "Не удалось переподключиться. Проверьте соединение с интернетом."
-        )
+        raise RuntimeError("Не удалось переподключиться. Проверьте соединение с интернетом.")
 
 
 def get_status() -> GameStatus:

@@ -1,8 +1,9 @@
 # matcher.py
 
+from typing import Optional, Tuple
+
 import cv2
 import numpy as np
-from typing import Tuple
 
 
 def find_template(
@@ -25,9 +26,12 @@ def find_template(
 
 
 def find_dialog_box_pos(
-    screen: np.ndarray, dialog_template_rgba: np.ndarray, threshold: float = 0.8
-) -> Tuple[int, int] | None:
-    """Ищет позицию диалогового окна по маске альфа-канала с масштабированием."""
+    screen: np.ndarray,
+    dialog_template_rgba: np.ndarray,
+    threshold: float = 0.8,
+) -> Optional[Tuple[int, int]]:
+    """Ищет позицию диалогового окна по маске"""
+    """альфа-канала с масштабированием."""
     bgr_template = dialog_template_rgba[:, :, :3]
     alpha_mask = dialog_template_rgba[:, :, 3]
     mask = (alpha_mask > 128).astype(np.uint8) * 255
@@ -44,9 +48,7 @@ def find_dialog_box_pos(
             interpolation=cv2.INTER_NEAREST,
         )
 
-        res = cv2.matchTemplate(
-            screen, resized_template, cv2.TM_CCORR_NORMED, mask=resized_mask
-        )
+        res = cv2.matchTemplate(screen, resized_template, cv2.TM_CCORR_NORMED, mask=resized_mask)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
 
         if max_val > best_val:
