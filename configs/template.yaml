@@ -23,3 +23,6 @@ wait_time_click_sec: 1.5
 wait_time_reconnection_sec: 15
 wait_time_status_sec: 1.5
 wait_time_production_sec: 1
+
+cost_lower: 400000
+cost_same: 500000

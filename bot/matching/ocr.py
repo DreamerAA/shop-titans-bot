@@ -69,10 +69,17 @@ def extract_number_with_commas(
 def extract_cost() -> int:
     """Извлекает стоимость из области cost_borders."""
     settings = get_settings()
+
+    def try_get_cost(screen):
+        region = get_region_from_screen(screen, settings.cost_borders)
+        filtered = color_filter(region, settings.rgb_cost)
+        return extract_number_with_commas(filtered)
+
     screen = get_screen_shot()
-    region = get_region_from_screen(screen, settings.cost_borders)
-    filtered = color_filter(region, settings.rgb_cost)
-    result = extract_number_with_commas(filtered)
+    result = try_get_cost(screen)
+    if len(result) != 1:
+        settings.invalidate_screeenshot_cache()  # Попробуем снова
+    result = try_get_cost(screen)
     if len(result) != 1:
         raise ValueError("Не удалось извлечь стоимость, результат: " + str(result))
     return int(result[0][0])

@@ -38,6 +38,7 @@ def step_trading():
     Один шаг торгового цикла: оценка диалога, принятие решения,
     клик по нужной кнопке.
     """
+    settings = get_settings()
     status = get_status()
     if status != GameStatus.MAIN_WINDOW:
         print("Current status is ", status)
@@ -108,7 +109,7 @@ def step_trading():
         cost = extract_cost()
         avaliable_energy = get_avaliable_energy()
 
-        if cost < 400_000:
+        if cost < settings.cost_lower:
             energy_lower = extract_energy_for_lower_price()
             print("⬇️ Energy for lower price:", energy_lower)
             if energy_lower + avaliable_energy > max_energy:
@@ -133,7 +134,7 @@ def step_trading():
 
             if find_and_click("lower_price") is None:
                 raise RuntimeError("Не удалось кликнуть по кнопке понижения цены.")
-        elif cost < 500_000:
+        elif cost < settings.cost_same:
             if not go_chat():
                 status = get_status()
                 continue

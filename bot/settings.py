@@ -81,6 +81,9 @@ class Settings:
         self.wt_status_sec = cfg.get("wait_time_status_sec", 1.5)
         self.wt_production_sec = cfg.get("wait_time_production_sec", 1)
 
+        self.cost_lower: float = cfg.get("cost_lower", 400_000)
+        self.cost_same: float = cfg.get("cost_same", 500_000)
+
     @property
     def ready_position(self) -> Tuple[int, int]:
         x1, x2, y1, y2 = self.ready_borders
