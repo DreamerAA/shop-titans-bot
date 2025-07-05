@@ -26,3 +26,6 @@ wait_time_production_sec: 1
 
 cost_lower: 400000
 cost_same: 500000
+
+telegram_token: ''
+allowed_user_id: 12345
