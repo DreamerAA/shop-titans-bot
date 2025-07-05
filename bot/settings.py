@@ -84,6 +84,9 @@ class Settings:
         self.cost_lower: float = cfg.get("cost_lower", 400_000)
         self.cost_same: float = cfg.get("cost_same", 500_000)
 
+        self.telegram_token: str = cfg.get("telegram_token", None)
+        self.allowed_user_id: int = cfg.get("allowed_user_id", None)
+
     @property
     def ready_position(self) -> Tuple[int, int]:
         x1, x2, y1, y2 = self.ready_borders
