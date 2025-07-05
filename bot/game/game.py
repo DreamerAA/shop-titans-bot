@@ -18,6 +18,7 @@ def run_game_bot(controller: BotController):
 
             print("🔁 Starting trading cycle...")
             step_trading()
+
             if controller.should_stop():
                 print("🛑 Stopping trading cycle as per user request.")
                 break

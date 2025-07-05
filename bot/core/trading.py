@@ -58,6 +58,7 @@ def step_trading():
         print("❗️ No dialog found, skipping trading step.")
         return
 
+    print("🗨️ Found dialog at position:", dialog_pos)
     set_mouse_position(dialog_pos)
     click_left()
     time.sleep(get_settings().wt_click_sec)
