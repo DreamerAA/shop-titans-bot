@@ -46,7 +46,14 @@ def step_trading():
 
     screen = get_screen_shot()
     dialog_template_rgba = cv2.imread(pic_path("dialog_template"), cv2.IMREAD_UNCHANGED)
+
     dialog_pos = find_dialog_box_pos(screen, dialog_template_rgba, threshold=0.6)
+    if dialog_pos is None:
+        sell_dialog_template_rgba = cv2.imread(
+            pic_path("sell_dialog_template"), cv2.IMREAD_UNCHANGED
+        )
+        dialog_pos = find_dialog_box_pos(screen, sell_dialog_template_rgba, threshold=0.6)
+
     if dialog_pos is None:
         print("❗️ No dialog found, skipping trading step.")
         return

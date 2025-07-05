@@ -1,7 +1,8 @@
 import time
 
 from bot.controller import BotController
-from bot.core.production import set_split_production  # noqa: E501
+
+# from bot.core.production import set_split_production  # noqa: E501
 from bot.core.production import assemble_products, set_one_production
 from bot.core.status import check_reconnect
 from bot.core.trading import step_trading
@@ -32,16 +33,17 @@ def run_game_bot(controller: BotController):
             # Вариант 1: split production — использовать, если вы хотите делить
             # производственные мощности на разные товары.
             # Раскомментируйте и укажите нужные пары (путь до шаблона, количество).
-            set_split_production(
-                [
-                    # ("obj/eclipse", 2),
-                    # ("obj/snake_blood_ointment", 2),
-                    # ("obj/corsair_boots", 2),
-                ]
-            )
-            if controller.should_stop():
-                print("🛑 Stopping trading cycle as per user request.")
-                break
+            # set_split_production(
+            #     [
+            #         # ("obj/eclipse", 2),
+            #         # ("obj/snake_blood_ointment", 2),
+            #         # ("obj/corsair_boots", 2),
+            #     ]
+            # )
+            # if controller.should_stop():
+            #     print("🛑 Stopping trading cycle as per user request.")
+            #     break
+
             # Вариант 2: one production — использовать, если вы хотите производить
             # только один тип товара.
             set_one_production(
@@ -51,8 +53,8 @@ def run_game_bot(controller: BotController):
                     # "moonstone/perfect",
                     # "moonstone/excellent",
                     # "obj/sword_damocles",
-                    # "obj/snake_elixir",
                     # "obj/pliers_ash_like",
+                    "obj/snake_elixir",
                     "obj/archivist_glasses",
                     "obj/stone_crusher",
                     # "obj/grimoire_collection",
