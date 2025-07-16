@@ -210,3 +210,4 @@ __marimo__/
 # Custom
 /configs/my_config.yaml
 /bot/data/last_screenshot.png
+/bot/data/tg_screenshot.png

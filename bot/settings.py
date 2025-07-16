@@ -92,6 +92,10 @@ class Settings:
         x1, x2, y1, y2 = self.ready_borders
         return (x1 + x2) // 2, (y1 + y2) // 2
 
+    @property
+    def center_position(self) -> Tuple[int, int]:
+        return 1920, 200
+
     def invalidate_screeenshot_cache(self):
         """Удалить кэш скриншота экрана."""
         self.cache.remove(self.cache.key_last_screen_shot)
@@ -115,3 +119,10 @@ def get_settings(config_path="config.yaml"):
     if _settings_instance is None:
         _settings_instance = Settings(config_path=config_path)
     return _settings_instance
+
+
+def reset_settings():
+    """Сбросить настройки и кэш."""
+    global _settings_instance
+    _settings_instance = None
+    print("🔄 Settings and cache reset.")

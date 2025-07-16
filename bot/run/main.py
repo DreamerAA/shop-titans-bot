@@ -2,7 +2,7 @@ import argparse
 import threading
 import traceback
 
-from bot.controller import BotController
+from bot.botcontroller import BotController
 from bot.game.game import run_game_bot
 from bot.settings import get_settings
 from bot.telegram.client import run_telegram_bot
@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     # Пример: использовать путь до конфига
     settings = get_settings(config_path=args.config)
-    controller = BotController()
+    controller = BotController(args.config)
 
     controller.set_exception_callback(exception_handler)
 
@@ -57,6 +57,3 @@ if __name__ == "__main__":
     except Exception as e:
         print("❌ Bot encountered an unexpected error: ", str(e))
         print(traceback.format_exc())
-        # settings = get_settings()
-        # # TODO: В будущем можно вставить уведомление в Telegram или лог-файл
-        # send_alert(str(e), settings.get_screenshot_cached())

@@ -32,5 +32,6 @@ def find_and_click(data: str, method: str = "template", **kwargs):
 
 
 def to_main():
-    set_mouse_position((1920, 200))
+    settings = get_settings()
+    set_mouse_position(settings.center_position)
     click_left()

@@ -12,19 +12,19 @@ from bot.core.status import (
 )
 from bot.screen import get_region_from_screen, get_screen_shot
 from bot.settings import get_settings
-from bot.utility import color_filter
+from bot.utility import color_filter, save_cv_image
 
 
 def check_production_ready() -> bool:
     settings = get_settings()
     screen = get_screen_shot()
     part_screen = get_region_from_screen(screen, settings.ready_borders)
-    result = color_filter(
+    filter_result = color_filter(
         part_screen,
         upper=settings.rgb_ready_upper,
         lower=settings.rgb_ready_lower,
     )
-    results = settings.ru_reader.readtext(result)
+    results = settings.ru_reader.readtext(filter_result)
     if len(results) != 1:
         return False
     result = results[0]
@@ -32,6 +32,8 @@ def check_production_ready() -> bool:
     text = text.lower().replace("0", "o")
     print(f"found text: {text}, confidence: {confidence}")
     if text != "готово":
+        save_cv_image("part_screen", part_screen)
+        save_cv_image("filter_result", filter_result)
         return False
     return True
 
@@ -46,14 +48,17 @@ def assemble_products() -> bool:
     while check_production_ready():
         print("has ready production")
         set_mouse_position(settings.ready_position)
+        time.sleep(0.5)
         click_left()
+        time.sleep(0.5)
+        set_mouse_position(settings.center_position)
         time.sleep(settings.wt_production_sec)
 
-        while find_and_click("ok") is not None:
+        while find_and_click("controls/ok") is not None:
             print("click_on_ok", True)
-        while find_and_click("take") is not None:
+        while find_and_click("controls/take") is not None:
             print("click_on_take", True)
-        if find_and_click("close") is not None:
+        if find_and_click("controls/close") is not None:
             print("click_on_close", True)
 
         was_click = True
@@ -75,7 +80,7 @@ def set_one_production(names: list[str]):
     if len(names) == 0:
         return
 
-    if find_and_click("create") is None:
+    if find_and_click("controls/create") is None:
         raise RuntimeError("Не удалось открыть главное меню для производства.")
 
     if check_ending_cells():
@@ -89,7 +94,7 @@ def set_one_production(names: list[str]):
         res = find_and_click(name)
         if res is None:
             if check_not_enough_resources():
-                find_and_click("close")
+                find_and_click("controls/close")
                 blocked[index] = True
                 if all(blocked.values()):
                     break
@@ -113,7 +118,7 @@ def set_split_production(data: list[tuple[str, int]]):
     if len(data) == 0:
         return
 
-    if find_and_click("create") is None:
+    if find_and_click("controls/create") is None:
         raise RuntimeError("Не удалось открыть главное меню для производства.")
     for name, count in data:
         for _ in range(count):
@@ -124,5 +129,5 @@ def set_split_production(data: list[tuple[str, int]]):
             find_and_click(name)
 
             if check_not_enough_resources():
-                find_and_click("close")
+                find_and_click("controls/close")
                 break

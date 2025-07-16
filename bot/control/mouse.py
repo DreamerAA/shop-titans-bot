@@ -19,7 +19,6 @@ def get_mouse_position() -> Tuple[int, int]:
 
 def click_left():
     """Сделать одиночный левый клик."""
-
     settings = get_settings()
     settings.invalidate_screeenshot_cache()
     settings.mouse.click(Button.left, 1)

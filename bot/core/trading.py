@@ -22,11 +22,11 @@ from bot.utility import pic_path
 
 def go_chat() -> bool:
     """Переходит в чат. Возвращает True при успехе, False при отказе."""
-    if not find_and_click("chat"):
+    if not find_and_click("controls/chat"):
         return False
 
     if find("feilure"):
-        if not find_and_click("deny"):
+        if not find_and_click("controls/deny"):
             raise RuntimeError("Не удалось закрыть диалог отказа от чата.")
         return False
 
@@ -43,6 +43,13 @@ def step_trading():
     if status != GameStatus.MAIN_WINDOW:
         print("Current status is ", status)
         raise RuntimeError("Not in main window, cannot start trading")
+
+    possible_to_sell = [
+        "obj_no_bg/armor/ash_trees",
+        "obj_no_bg/accessories/spicy_granite",
+        "obj_no_bg/armor/centurion_armor",
+        "obj_no_bg/accessories/comfortable_pendant",
+    ]
 
     screen = get_screen_shot()
     dialog_template_rgba = cv2.imread(pic_path("dialog_template"), cv2.IMREAD_UNCHANGED)
@@ -82,34 +89,34 @@ def step_trading():
         # TODO: refactoring - create StateMachine
 
         if status == GameStatus.REFILL_DIALOG:
-            if find_and_click("deny") is None:
+            if find_and_click("controls/deny") is None:
                 raise RuntimeError("Не удалось закрыть диалог отказа от пополнения товаров.")
             status = get_status()
             continue
         if status == GameStatus.SPECIAL_OFFER_DIALOG:
-            if find_and_click("close") is None:
+            if find_and_click("controls/close") is None:
                 raise RuntimeError("Не удалось закрыть диалог специального предложения.")
             status = get_status()
             continue
 
         if status == GameStatus.BUY_DIALOG:
-            if find_and_click("chat") is None:
+            if find_and_click("controls/chat") is None:
                 raise RuntimeError("Не удалось открыть чат в диалоге покупки.")
-            if find_and_click("buy") is None:
+            if find_and_click("controls/buy") is None:
                 raise RuntimeError("Не удалось кликнуть по кнопке покупки в диалоге покупки.")
             status = get_status()
             continue
 
         # Расскомментируй если не хочешь продавать свои товары
-        # if find_and_click("deny") is None:
+        # if find_and_click("controls/deny") is None:
         #    raise RuntimeError("Не удалось закрыть диалог отказа от продажи.")
         # status = get_status()
         # continue
 
         if find("series"):
-            if find_and_click("chat") is None:
+            if find_and_click("controls/chat") is None:
                 raise RuntimeError("Не удалось открыть чат в диалоге серии.")
-            if find_and_click("sell") is None:
+            if find_and_click("controls/sell") is None:
                 raise RuntimeError("Не удалось кликнуть по кнопке продажи в диалоге серии.")
             status = get_status()
             continue
@@ -121,7 +128,7 @@ def step_trading():
             energy_lower = extract_energy_for_lower_price()
             print("⬇️ Energy for lower price:", energy_lower)
             if energy_lower + avaliable_energy > max_energy:
-                if find_and_click("deny") is None:
+                if find_and_click("controls/deny") is None:
                     raise RuntimeError("Не удалось закрыть диалог отказа от понижения цены.")
                 status = get_status()
                 continue
@@ -135,12 +142,12 @@ def step_trading():
             avaliable_energy = get_avaliable_energy()
 
             if energy_lower + avaliable_energy > max_energy:
-                if find_and_click("deny") is None:
+                if find_and_click("controls/deny") is None:
                     raise RuntimeError("Не удалось закрыть диалог отказа от понижения цены.")
                 status = get_status()
                 continue
 
-            if find_and_click("lower_price") is None:
+            if find_and_click("controls/lower_price") is None:
                 raise RuntimeError("Не удалось кликнуть по кнопке понижения цены.")
         elif cost < settings.cost_same:
             if not go_chat():
@@ -150,24 +157,38 @@ def step_trading():
                 raise RuntimeError("Не удалось найти сообщение об успешном повышении цены.")
 
         else:  # cost >= 500_000
-            energy_raise = extract_energy_for_raise_price()
-            print("⬆️ Energy for raise price:", energy_raise)
-
-            if energy_raise > avaliable_energy:
-                if find_and_click("deny") is None:
-                    raise RuntimeError("Не удалось закрыть диалог отказа от повышения цены.")
-                status = get_status()
-                continue
-
             if not go_chat():
                 status = get_status()
                 continue
-
-            if find("success") is None:
+            if find("controls/success") is None:
                 raise RuntimeError("Не удалось найти сообщение об успешном повышении цены.")
-            if find_and_click("raise_price_avaliable") is None:
-                raise RuntimeError("Не удалось кликнуть по кнопке повышения цены.")
 
-        if find_and_click("sell") is None:
+            energy_raise = extract_energy_for_raise_price()
+            print("⬆️ Energy for raise price:", energy_raise)
+            replaced_item = False
+            if energy_raise > avaliable_energy:
+                # Пытаемся найти и предложить другой товар
+                if len(possible_to_sell) > 0:
+                    print("🔄 Trying to sell another item...")
+                    cdot_click_result = find_and_click("controls/cdot")
+                    if cdot_click_result is not None:
+                        for item in possible_to_sell:
+                            if find_and_click(item):
+                                replaced_item = True
+                                print(f"✅ Successfully clicked on {item}.")
+                                break
+                if replaced_item:
+                    if find_and_click("controls/lower_price") is None:
+                        raise RuntimeError("Не удалось кликнуть по кнопке понижения цены.")
+                else:
+                    if find_and_click("controls/deny") is None:
+                        raise RuntimeError("Не удалось закрыть диалог отказа от повышения цены.")
+                    status = get_status()
+                    continue
+            else:
+                if find_and_click("controls/raise_price_avaliable") is None:
+                    raise RuntimeError("Не удалось кликнуть по кнопке повышения цены.")
+
+        if find_and_click("controls/sell") is None:
             raise RuntimeError("Не удалось кликнуть по кнопке продажи.")
         status = get_status()
