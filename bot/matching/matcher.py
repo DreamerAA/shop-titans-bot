@@ -48,7 +48,7 @@ def find_dialog_box_pos(
             interpolation=cv2.INTER_NEAREST,
         )
 
-        res = cv2.matchTemplate(screen, resized_template, cv2.TM_CCORR_NORMED, mask=resized_mask)
+        res = cv2.matchTemplate(screen, resized_template, cv2.TM_CCOEFF_NORMED, mask=resized_mask)
         _, max_val, _, max_loc = cv2.minMaxLoc(res)
 
         if max_val > best_val:

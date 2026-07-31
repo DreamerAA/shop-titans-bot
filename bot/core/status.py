@@ -8,27 +8,27 @@ from bot.settings import GameStatus, get_settings
 
 def check_is_main_window() -> bool:
     """Проверка, открыт ли главный экран (по кнопке 'create')."""
-    return find("create") is not None
+    return find("controls/create") is not None
 
 
 def check_not_enough_resources() -> bool:
     """Проверка сообщения о нехватке ресурсов."""
-    return find("not_enough") is not None
+    return find("controls/not_enough") is not None
 
 
 def check_ending_cells() -> bool:
     """Проверка, что ячейки производства закончились."""
-    return find("ending_cell") is not None
+    return find("controls/ending_cell") is not None
 
 
 def check_reconnect():
     """Цикл переподключения при разрыве соединения."""
-    pos = find_and_click("reconnect")
+    pos = find_and_click("controls/reconnect")
     while find("create") is None and pos is not None:
         print("🔁 Переподключение...")
         time.sleep(get_settings().wt_reconnection_sec)
-        pos = find_and_click("reconnect")
-    if not (find("create") is not None or find("reconnect") is None):
+        pos = find_and_click("controls/reconnect")
+    if not (find("create") is not None or find("controls/reconnect") is None):
         raise RuntimeError("Не удалось переподключиться. Проверьте соединение с интернетом.")
 
 
@@ -37,12 +37,12 @@ def get_status() -> GameStatus:
     time.sleep(get_settings().wt_status_sec)  # Задержка для стабильности определения статуса
     if check_is_main_window():
         return GameStatus.MAIN_WINDOW
-    if find("special_offer"):
+    if find("controls/special_offer"):
         return GameStatus.SPECIAL_OFFER_DIALOG
-    if find("sell") and find("deny"):
+    if find("controls/sell") and find("controls/deny"):
         return GameStatus.SELL_DIALOG
-    if find("refill") and find("deny"):
+    if find("controls/refill") and find("controls/deny"):
         return GameStatus.REFILL_DIALOG
-    if find("buy") and find("deny"):
+    if find("controls/buy") and find("controls/deny"):
         return GameStatus.BUY_DIALOG
     return GameStatus.OTHER

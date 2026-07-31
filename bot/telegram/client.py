@@ -6,7 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import BotCommand
 
-from bot.controller import BotController
+from bot.botcontroller import BotController
 from bot.telegram.commands import register_handlers
 from bot.telegram.state import notification_queue
 
@@ -25,6 +25,8 @@ def run_telegram_bot(token: str, allowed_user_id: int, controller: BotController
                 BotCommand(command="start", description="Старт работы"),
                 BotCommand(command="stop", description="Остановить бота"),
                 BotCommand(command="screenshot", description="Сделать скриншот"),
+                BotCommand(command="to_main", description="Клик в центре экрана"),
+                BotCommand(command="find_and_click", description="Найти и кликнуть"),
                 BotCommand(command="last_screenshot", description="Последний скриншот"),
             ]
         )
