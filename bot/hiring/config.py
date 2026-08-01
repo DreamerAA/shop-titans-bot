@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import FrozenSet, Mapping, Union
+from typing import FrozenSet, Mapping, Optional, Union
 
 import yaml
 
@@ -20,7 +20,17 @@ class HiringLimits:
 
 
 @dataclass(frozen=True)
+class WindowConfig:
+    process_name: str = "ShopTitan.exe"
+    title_contains: Optional[str] = "Shop Titans"
+    capture_method: str = "window"
+    min_client_width: int = 640
+    min_client_height: int = 480
+
+
+@dataclass(frozen=True)
 class HiringConfig:
+    window: WindowConfig
     category: str
     hero_class: str
     allowed_skills: FrozenSet[str]
@@ -31,6 +41,12 @@ def _require_mapping(value, path: str) -> Mapping:
     if not isinstance(value, Mapping):
         raise HiringConfigError(f"'{path}' must be a YAML mapping")
     return value
+
+
+def _require_string(value, path: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise HiringConfigError(f"'{path}' must be a non-empty string")
+    return value.strip()
 
 
 def _require_non_negative_int(value, path: str) -> int:
@@ -66,16 +82,38 @@ def parse_hiring_config(data: Mapping) -> HiringConfig:
     """Validate already loaded YAML data and return an immutable config."""
 
     root = _require_mapping(data, "root")
+    window_data = _require_mapping(root.get("window", {}), "window")
     hiring = _require_mapping(root.get("hiring"), "hiring")
 
-    category = hiring.get("category")
+    title_contains = window_data.get("title_contains", "Shop Titans")
+    if title_contains is not None:
+        title_contains = _require_string(title_contains, "window.title_contains")
+    window = WindowConfig(
+        process_name=_require_string(
+            window_data.get("process_name", "ShopTitan.exe"), "window.process_name"
+        ),
+        title_contains=title_contains,
+        capture_method=_require_string(
+            window_data.get("capture_method", "window"), "window.capture_method"
+        ).lower(),
+        min_client_width=_require_positive_int(
+            window_data.get("min_client_width", 640), "window.min_client_width"
+        ),
+        min_client_height=_require_positive_int(
+            window_data.get("min_client_height", 480), "window.min_client_height"
+        ),
+    )
+    if window.capture_method not in {"window", "desktop"}:
+        raise HiringConfigError("'window.capture_method' must be either 'window' or 'desktop'")
+
+    category = _require_string(hiring.get("category"), "hiring.category").lower()
     if category not in HERO_CLASSES:
         raise HiringConfigError(
             f"Unknown hero category: {category!r}. Available categories: "
             f"{', '.join(sorted(HERO_CLASSES))}"
         )
 
-    hero_class = hiring.get("class")
+    hero_class = _require_string(hiring.get("class"), "hiring.class").lower()
     if hero_class not in HERO_CLASSES[category]:
         raise HiringConfigError(
             f"Hero class {hero_class!r} does not belong to category {category!r}. "
@@ -94,6 +132,7 @@ def parse_hiring_config(data: Mapping) -> HiringConfig:
     )
 
     return HiringConfig(
+        window=window,
         category=category,
         hero_class=hero_class,
         allowed_skills=allowed_skills,

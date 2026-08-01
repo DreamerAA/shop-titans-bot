@@ -1,3 +1,12 @@
+window:
+  process_name: ShopTitan.exe
+  # The process match is authoritative. The title is an optional fallback/hint.
+  title_contains: Shop Titans
+  # Direct HWND capture is not affected by windows overlapping the game.
+  capture_method: window
+  min_client_width: 640
+  min_client_height: 480
+
 hiring:
   category: warrior
   class: soldier

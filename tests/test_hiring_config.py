@@ -17,6 +17,13 @@ class HiringCatalogTests(unittest.TestCase):
 class HiringConfigTests(unittest.TestCase):
     def valid_data(self):
         return {
+            "window": {
+                "process_name": "ShopTitan.exe",
+                "title_contains": "Shop Titans",
+                "capture_method": "window",
+                "min_client_width": 640,
+                "min_client_height": 480,
+            },
             "hiring": {
                 "category": "warrior",
                 "class": "soldier",
@@ -27,7 +34,7 @@ class HiringConfigTests(unittest.TestCase):
                     "thick_skin",
                 ],
                 "limits": {"max_gold_spent": 1_000_000, "max_attempts": 100},
-            }
+            },
         }
 
     def test_parses_soldier_configuration(self):
@@ -35,6 +42,8 @@ class HiringConfigTests(unittest.TestCase):
 
         self.assertEqual("warrior", config.category)
         self.assertEqual("soldier", config.hero_class)
+        self.assertEqual("ShopTitan.exe", config.window.process_name)
+        self.assertEqual("window", config.window.capture_method)
         self.assertEqual(1_000_000, config.limits.max_gold_spent)
         self.assertEqual(4, len(config.allowed_skills))
 
