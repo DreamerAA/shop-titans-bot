@@ -1,0 +1,14 @@
+hiring:
+  category: warrior
+  class: soldier
+
+  # Both random skills must be present in this allow-list.
+  allowed_skills:
+    - extra_plating
+    - impervious
+    - juggernaut
+    - thick_skin
+
+  limits:
+    max_gold_spent: 1000000
+    max_attempts: 100
