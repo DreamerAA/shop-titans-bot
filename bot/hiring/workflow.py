@@ -61,6 +61,8 @@ class HiringWorkflow:
         # destructive action dialog verifies the exact name again before firing.
         self.require_new_hero_alert = not bool(checkpoint and checkpoint.hero_name)
         self.character_scrolls = 0
+        self.hiring_label_bounds: Optional[Tuple[int, int, int, int]] = None
+        self.hiring_frame_size: Optional[Tuple[int, int]] = None
 
     def _save_checkpoint(self) -> None:
         self.checkpoint_store.save(self.hero_name, self.attempts, self.gold_spent)
@@ -246,8 +248,8 @@ class HiringWorkflow:
     ]:
         first_frame, first_state = self._capture_known(window)
         second_frame, second_state = self._capture_known(first_frame.window)
-        first_labels = self.hiring_panel_reader.read_labels(first_frame.image)
-        second_labels = self.hiring_panel_reader.read_labels(second_frame.image)
+        first_labels = self._read_hiring_labels(first_frame)
+        second_labels = self._read_hiring_labels(second_frame)
         category_keys = tuple(
             self._label_key(HERO_CATEGORY_NAMES_RU[category]) for category in HERO_CLASSES
         )
@@ -271,6 +273,36 @@ class HiringWorkflow:
                 "Two captures did not agree on all three hiring category labels"
             )
         return first_frame, first_labels, second_frame, second_labels
+
+    def _read_hiring_labels(self, frame: WindowFrame) -> Dict[str, OCRTextMatch]:
+        frame_size = (frame.image.shape[1], frame.image.shape[0])
+        if self.hiring_frame_size != frame_size:
+            self.hiring_label_bounds = None
+            self.hiring_frame_size = frame_size
+
+        labels = self.hiring_panel_reader.read_labels(
+            frame.image,
+            self.hiring_label_bounds,
+        )
+        category_keys = tuple(
+            self._label_key(HERO_CATEGORY_NAMES_RU[category]) for category in HERO_CLASSES
+        )
+        if self.hiring_label_bounds is not None and not all(key in labels for key in category_keys):
+            labels = self.hiring_panel_reader.read_labels(frame.image)
+
+        if all(key in labels for key in category_keys):
+            panel_left, ui_scale = self._panel_geometry(labels)
+            category_y = round(
+                sum(labels[key].center[1] for key in category_keys) / len(category_keys)
+            )
+            width, height = frame_size
+            self.hiring_label_bounds = (
+                max(0, round(panel_left - 8 * ui_scale)),
+                max(0, round(category_y - 20 * ui_scale)),
+                min(width, round(panel_left + 299 * ui_scale)),
+                min(height, round(category_y + 105 * ui_scale)),
+            )
+        return labels
 
     def _panel_geometry(
         self,
@@ -312,21 +344,27 @@ class HiringWorkflow:
         return candidates[0] if candidates else None
 
     def _verified_hire(self, window: GameWindow) -> None:
-        _, _, second_frame, second_labels = self._verified_hiring_labels(window)
-        category_key = self._label_key(HERO_CATEGORY_NAMES_RU[self.config.category])
-        self.window_input.click(second_frame, second_labels[category_key].center)
-        self.event(f"selected hero category {self.config.category}")
-        time.sleep(0.8)
-
         first_frame, first_labels, second_frame, second_labels = self._verified_hiring_labels(
             window
         )
+        category_key = self._label_key(HERO_CATEGORY_NAMES_RU[self.config.category])
         first_selected = self._selected_class(first_labels, self.config.category)
         second_selected = self._selected_class(second_labels, self.config.category)
-        if first_selected is None or first_selected != second_selected:
-            raise HiringWorkflowError(
-                f"Category {self.config.category!r} did not expose one stable class label"
+
+        if first_selected != self.config.hero_class or second_selected != self.config.hero_class:
+            self.window_input.click(second_frame, second_labels[category_key].center)
+            self.event(f"selected hero category {self.config.category}")
+            time.sleep(0.8)
+
+            first_frame, first_labels, second_frame, second_labels = self._verified_hiring_labels(
+                window
             )
+            first_selected = self._selected_class(first_labels, self.config.category)
+            second_selected = self._selected_class(second_labels, self.config.category)
+            if first_selected is None or first_selected != second_selected:
+                raise HiringWorkflowError(
+                    f"Category {self.config.category!r} did not expose one stable class label"
+                )
 
         if second_selected != self.config.hero_class:
             panel_left, ui_scale = self._panel_geometry(second_labels)

@@ -62,10 +62,40 @@ class HeroCardFinder:
         *,
         require_alert: bool = True,
     ) -> Optional[HeroCardMatch]:
+        height, width = image.shape[:2]
+        alert = self._find_template(
+            image,
+            "new_hero_alert",
+            (0, round(height * 0.65), width, round(height * 0.83)),
+        )
+        if alert is not None:
+            scale = alert.scale
+            name = self.name_reader.find_in_bounds(
+                image,
+                hero_name,
+                (
+                    max(0, alert.center[0] - round(165 * scale)),
+                    min(height, alert.center[1] + round(50 * scale)),
+                    min(width, alert.center[0] + round(5 * scale)),
+                    min(height, alert.center[1] + round(115 * scale)),
+                ),
+            )
+            if name is not None:
+                return self._build_match(image, name, alert)
+        if require_alert:
+            return None
+
         name = self.name_reader.find(image, hero_name)
         if name is None:
             return None
+        return self._build_match(image, name, None)
 
+    def _build_match(
+        self,
+        image: np.ndarray,
+        name: OCRTextMatch,
+        alert: Optional[TemplateMatch],
+    ) -> Optional[HeroCardMatch]:
         height, width = image.shape[:2]
         horizontal_gap = round(width * 0.08)
         card_top = max(0, name.center[1] - round(height * 0.12))
@@ -86,22 +116,10 @@ class HeroCardFinder:
         if not (level.center[0] < name.center[0] and level.center[1] < name.center[1]):
             return None
 
-        alert = None
-        if require_alert:
-            alert = self._find_template(
-                image,
-                "new_hero_alert",
-                (
-                    name.center[0],
-                    card_top,
-                    min(width, name.center[0] + horizontal_gap),
-                    card_bottom,
-                ),
-            )
-            if alert is None or not (
-                name.center[0] < alert.center[0] and alert.center[1] < name.center[1]
-            ):
-                return None
+        if alert is not None and not (
+            name.center[0] < alert.center[0] and alert.center[1] < name.center[1]
+        ):
+            return None
 
         portrait_y = max(0, name.center[1] - round(height * 0.05))
         return HeroCardMatch(

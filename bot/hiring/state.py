@@ -56,31 +56,62 @@ class HiringStateDetector:
     ):
         self.matcher = matcher or MultiScaleMatcher()
         self.name_reader = name_reader or HeroNameReader()
+        self.known_scales: dict[str, float] = {}
 
-    def _find(self, image: np.ndarray, spec: TemplateSpec) -> Optional[TemplateMatch]:
-        return self.matcher.find(
+    def _preferred_scales(self, spec: TemplateSpec) -> Tuple[float, ...]:
+        preferred = []
+        known = self.known_scales.get(spec.id)
+        if known is not None:
+            preferred.append(known)
+        if 1.0 in spec.scales and 1.0 not in preferred:
+            preferred.append(1.0)
+        if not preferred:
+            preferred.append(min(spec.scales, key=lambda scale: abs(scale - 1.0)))
+        return tuple(preferred)
+
+    def _find(
+        self,
+        image: np.ndarray,
+        spec: TemplateSpec,
+        scales: Optional[Tuple[float, ...]] = None,
+    ) -> Optional[TemplateMatch]:
+        match = self.matcher.find(
             image=image,
             template=load_template(spec.path),
             template_id=spec.id,
-            scales=spec.scales,
+            scales=scales or spec.scales,
             threshold=spec.threshold,
             roi=spec.roi,
         )
+        if match is not None:
+            self.known_scales[spec.id] = match.scale
+        return match
 
     def find_template(self, image: np.ndarray, template_id: str) -> Optional[TemplateMatch]:
         """Find a registered control without changing high-level state precedence."""
 
-        return self._find(image, get_template(template_id))
+        spec = get_template(template_id)
+        match = self._find(image, spec, self._preferred_scales(spec))
+        if match is not None:
+            return match
+        return self._find(image, spec)
 
     def detect(self, image: np.ndarray) -> ScreenDetection:
-        for screen, template_id, suggested_action in self.checks:
-            match = self._find(image, get_template(template_id))
-            if match is not None:
+        for preferred_only in (True, False):
+            for screen, template_id, suggested_action in self.checks:
+                spec = get_template(template_id)
+                match = self._find(
+                    image,
+                    spec,
+                    self._preferred_scales(spec) if preferred_only else spec.scales,
+                )
+                if match is None:
+                    continue
                 if screen == HiringScreen.NAME_ENTRY:
-                    button = self._find(image, get_template("confirm_free_hire"))
+                    button = self.find_template(image, "confirm_free_hire")
                     action = "confirm_free_hire"
                     if button is None:
-                        button = self._find(image, get_template("confirm_gold_hire"))
+                        button = self.find_template(image, "confirm_gold_hire")
                         action = "confirm_gold_hire"
                     return ScreenDetection(
                         screen=screen,
@@ -89,7 +120,7 @@ class HiringStateDetector:
                         hero_name=self.name_reader.read(image, match),
                     )
                 if screen == HiringScreen.HIRING:
-                    hire_free = self._find(image, get_template("hire_free"))
+                    hire_free = self.find_template(image, "hire_free")
                     if hire_free is not None:
                         return ScreenDetection(
                             screen=screen,

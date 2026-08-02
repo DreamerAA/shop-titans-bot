@@ -1,6 +1,7 @@
 """Resolution-tolerant template matching for the hiring workflow."""
 
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
@@ -53,15 +54,20 @@ class TemplateMatch:
         return x + width, y + height
 
 
-def load_template(path: Union[str, Path]) -> np.ndarray:
-    """Load a template with Unicode-safe Windows path handling."""
-
+@lru_cache(maxsize=None)
+def _load_template_cached(path: str) -> np.ndarray:
     template_path = Path(path)
     data = np.fromfile(str(template_path), dtype=np.uint8)
     template = cv2.imdecode(data, cv2.IMREAD_COLOR)
     if template is None:
         raise FileNotFoundError(f"Template not found or unreadable: {template_path}")
     return cv2.cvtColor(template, cv2.COLOR_BGR2RGB)
+
+
+def load_template(path: Union[str, Path]) -> np.ndarray:
+    """Load and cache a template with Unicode-safe Windows path handling."""
+
+    return _load_template_cached(str(Path(path).resolve()))
 
 
 class MultiScaleMatcher:

@@ -9,6 +9,16 @@ import numpy as np
 from bot.hiring.vision import NormalizedROI, TemplateMatch
 
 CYRILLIC_NAME_ALLOWLIST = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ-"
+_SHARED_READER: Optional[Any] = None
+
+
+def _get_shared_reader():
+    global _SHARED_READER
+    if _SHARED_READER is None:
+        import easyocr
+
+        _SHARED_READER = easyocr.Reader(["ru"], gpu=False, verbose=False)
+    return _SHARED_READER
 
 
 @dataclass(frozen=True)
@@ -27,9 +37,7 @@ class HeroNameReader:
 
     def _get_reader(self):
         if self._reader is None:
-            import easyocr
-
-            self._reader = easyocr.Reader(["ru"], gpu=False, verbose=False)
+            self._reader = _get_shared_reader()
         return self._reader
 
     def read(self, image: np.ndarray, header: TemplateMatch) -> Optional[str]:
@@ -60,8 +68,15 @@ class HeroNameReader:
 class HiringPanelReader(HeroNameReader):
     """Read exact category and class labels from a responsive hiring panel."""
 
-    def read_labels(self, image: np.ndarray) -> Dict[str, OCRTextMatch]:
-        left, top, right, bottom = NormalizedROI(0.25, 0.25, 1.0, 0.85).pixels(image)
+    def read_labels(
+        self,
+        image: np.ndarray,
+        bounds: Optional[tuple[int, int, int, int]] = None,
+    ) -> Dict[str, OCRTextMatch]:
+        if bounds is None:
+            left, top, right, bottom = NormalizedROI(0.25, 0.25, 1.0, 0.85).pixels(image)
+        else:
+            left, top, right, bottom = bounds
         results = self._get_reader().readtext(
             image[top:bottom, left:right],
             detail=1,
@@ -133,14 +148,27 @@ class HeroCardNameReader(HeroNameReader):
         return False
 
     def find(self, image: np.ndarray, target_name: str) -> Optional[OCRTextMatch]:
+        top = round(image.shape[0] * 0.68)
+        bottom = round(image.shape[0] * 0.94)
+        return self.find_in_bounds(
+            image,
+            target_name,
+            (0, top, image.shape[1], bottom),
+        )
+
+    def find_in_bounds(
+        self,
+        image: np.ndarray,
+        target_name: str,
+        bounds: tuple[int, int, int, int],
+    ) -> Optional[OCRTextMatch]:
         target = re.sub(r"[^А-ЯЁ-]", "", target_name.upper())
         if not target:
             return None
 
-        top = round(image.shape[0] * 0.68)
-        bottom = round(image.shape[0] * 0.94)
+        left, top, right, bottom = bounds
         results = self._get_reader().readtext(
-            image[top:bottom, :],
+            image[top:bottom, left:right],
             detail=1,
             paragraph=False,
             allowlist=CYRILLIC_NAME_ALLOWLIST,
@@ -155,7 +183,7 @@ class HeroCardNameReader(HeroNameReader):
                 or float(confidence) < minimum_confidence
             ):
                 continue
-            center_x = round(sum(float(point[0]) for point in box) / len(box))
+            center_x = round(sum(float(point[0]) for point in box) / len(box)) + left
             center_y = round(sum(float(point[1]) for point in box) / len(box)) + top
             candidates.append(
                 OCRTextMatch(
