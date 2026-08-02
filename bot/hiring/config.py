@@ -23,7 +23,8 @@ class HiringLimits:
 class WindowConfig:
     process_name: str = "ShopTitan.exe"
     title_contains: Optional[str] = "Shop Titans"
-    capture_method: str = "window"
+    capture_method: str = "desktop"
+    input_method: str = "foreground_mouse"
     min_client_width: int = 640
     min_client_height: int = 480
 
@@ -94,7 +95,10 @@ def parse_hiring_config(data: Mapping) -> HiringConfig:
         ),
         title_contains=title_contains,
         capture_method=_require_string(
-            window_data.get("capture_method", "window"), "window.capture_method"
+            window_data.get("capture_method", "desktop"), "window.capture_method"
+        ).lower(),
+        input_method=_require_string(
+            window_data.get("input_method", "foreground_mouse"), "window.input_method"
         ).lower(),
         min_client_width=_require_positive_int(
             window_data.get("min_client_width", 640), "window.min_client_width"
@@ -111,6 +115,10 @@ def parse_hiring_config(data: Mapping) -> HiringConfig:
         raise HiringConfigError(
             f"Unknown hero category: {category!r}. Available categories: "
             f"{', '.join(sorted(HERO_CLASSES))}"
+        )
+    if window.input_method not in {"foreground_mouse", "window_message"}:
+        raise HiringConfigError(
+            "'window.input_method' must be either 'foreground_mouse' or 'window_message'"
         )
 
     hero_class = _require_string(hiring.get("class"), "hiring.class").lower()

@@ -2,22 +2,24 @@ window:
   process_name: ShopTitan.exe
   # The process match is authoritative. The title is an optional fallback/hint.
   title_contains: Shop Titans
-  # Direct HWND capture is not affected by windows overlapping the game.
-  capture_method: window
+  # Unity returns stale frames through PrintWindow. Focus the game and capture its client rect.
+  capture_method: desktop
+  # Unity ignores background window messages, so verified clicks use foreground input.
+  input_method: foreground_mouse
   min_client_width: 640
   min_client_height: 480
 
 hiring:
-  category: warrior
-  class: soldier
+  category: spellcaster
+  class: druid
 
   # Both random skills must be present in this allow-list.
   allowed_skills:
-    - extra_plating
-    - impervious
-    - juggernaut
-    - thick_skin
+    - adept
+    - death_dealer
+    - double_cast
+    - all_natural
 
   limits:
     max_gold_spent: 1000000
-    max_attempts: 100
+    max_attempts: 1000

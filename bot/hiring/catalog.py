@@ -15,6 +15,7 @@ class SkillDefinition:
 
     id: str
     name_ru: str
+    rarity: str
 
     @property
     def template_filename(self) -> str:
@@ -51,9 +52,40 @@ HERO_CLASSES: Dict[str, Tuple[str, ...]] = {
     ),
 }
 
+HERO_CATEGORY_NAMES_RU = {
+    "warrior": "ВОИН",
+    "rogue": "СТРАННИК",
+    "spellcaster": "ЗАКЛИНАТЕЛЬ",
+}
+
+HERO_CLASS_NAMES_RU = {
+    "soldier": "СОЛДАТ",
+    "barbarian": "ВАРВАР",
+    "knight": "РЫЦАРЬ",
+    "ranger": "ОХОТНИК",
+    "samurai": "САМУРАЙ",
+    "berserker": "БЕРСЕРК",
+    "dark_knight": "ТЁМНЫЙ РЫЦАРЬ",
+    "thief": "ВОР",
+    "monk": "МОНАХ",
+    "musketeer": "МУШКЕТЁР",
+    "wanderer": "БРОДЯГА",
+    "ninja": "НИНДЗЯ",
+    "dancer": "ТАНЦОР",
+    "velite": "ВЕЛИТ",
+    "mage": "МАГ",
+    "cleric": "СВЯЩЕННИК",
+    "druid": "ДРУИД",
+    "sorcerer": "ВОЛШЕБНИК",
+    "spellblade": "ЧУДОТВОРЕЦ",
+    "geomancer": "ГЕОМАНТ",
+    "chronomancer": "ХРОНОМАНТ",
+}
+
 
 _SKILL_NAMES_RU = {
     "acrobatics": "Акробатика",
+    "adept": "Архимаг",
     "fast_healer": "Быстрое исцеление",
     "fast_learner": "Быстрое обучение",
     "whirlwind_attack": "Вихрь",
@@ -92,10 +124,107 @@ _SKILL_NAMES_RU = {
     "death_dealer": "Торговец смертью",
     "smite": "Удар небес",
     "caltrops": "Шипы",
+    "antimagic_net": "Сеть против магии",
+    "arcane_blast": "Магический взрыв",
+    "bow_master": "Мастер лучник",
+    "catalyst_master": "Мастер катализаторов",
+    "curse": "Проклятье",
+    "dagger_master": "Эксперт по кинжалам",
+    "dance_of_blades": "Танец клинков",
+    "double_cast": "Двойное заклинание",
+    "fireball": "Огненный шар",
+    "instrument_master": "Мастер инструментов",
+    "mage_armor": "Доспехи мага",
+    "magic_darts": "Магические дротики",
+    "mana_shield": "Щит маны",
+    "marksman": "Снайпер",
+    "shield_master": "Король щитов",
+    "staff_master": "Мастер посоха",
+    "wall_of_force": "Стена силы",
+    "wand_master": "Мастер палочки",
 }
 
 
+_SKILL_RARITIES = {
+    "usual": {
+        "acrobatics",
+        "arcane_blast",
+        "axe_master",
+        "bow_master",
+        "catalyst_master",
+        "cleave",
+        "dagger_master",
+        "eagle_eyes",
+        "fast_learner",
+        "instrument_master",
+        "mace_master",
+        "mage_armor",
+        "magic_darts",
+        "maintenance",
+        "on_guard",
+        "perforate",
+        "shield_master",
+        "smite",
+        "spear_master",
+        "staff_master",
+        "sturdy",
+        "sword_master",
+        "wand_master",
+    },
+    "rare": {
+        "all_natural",
+        "antimagic_net",
+        "caltrops",
+        "curse",
+        "deadly_criticals",
+        "deception",
+        "extra_conditioning",
+        "fast_healer",
+        "fireball",
+        "flame_brand",
+        "juggernaut",
+        "power_attack",
+        "shining_blade",
+        "sunder",
+        "telling_blows",
+        "thick_skin",
+        "throw_daggers",
+        "toughness",
+        "wall_of_force",
+    },
+    "epic": {
+        "adept",
+        "battering_blows",
+        "blurred_movement",
+        "dance_of_blades",
+        "death_dealer",
+        "double_cast",
+        "extended_warranty",
+        "extra_plating",
+        "impervious",
+        "mana_shield",
+        "marksman",
+        "perfect_form",
+        "super_genius",
+        "survivor",
+        "warlord",
+        "whirlwind_attack",
+    },
+}
+
+
+def _rarity_for(skill_id: str) -> str:
+    matches = [rarity for rarity, skill_ids in _SKILL_RARITIES.items() if skill_id in skill_ids]
+    if len(matches) != 1:
+        raise ValueError(f"Skill {skill_id!r} must have exactly one rarity, got {matches}")
+    return matches[0]
+
+
 SKILLS: Dict[str, SkillDefinition] = {
-    skill_id: SkillDefinition(id=skill_id, name_ru=name_ru)
+    skill_id: SkillDefinition(
+        id=skill_id,
+        name_ru=name_ru,
+        rarity=_rarity_for(skill_id),
+    )
     for skill_id, name_ru in _SKILL_NAMES_RU.items()
 }

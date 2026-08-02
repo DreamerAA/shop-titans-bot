@@ -12,6 +12,10 @@ class WindowNotFoundError(RuntimeError):
     """Raised when no suitable game window can be found."""
 
 
+class WindowActivationError(RuntimeError):
+    """Raised when Windows refuses to focus the target game window."""
+
+
 @dataclass(frozen=True)
 class ClientRect:
     """Client-area rectangle expressed in desktop coordinates."""
@@ -75,6 +79,25 @@ if sys.platform == "win32":
     _user32.IsWindowVisible.restype = wintypes.BOOL
     _user32.IsIconic.argtypes = [wintypes.HWND]
     _user32.IsIconic.restype = wintypes.BOOL
+    _user32.GetForegroundWindow.argtypes = []
+    _user32.GetForegroundWindow.restype = wintypes.HWND
+    _user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+    _user32.SetForegroundWindow.restype = wintypes.BOOL
+    _user32.BringWindowToTop.argtypes = [wintypes.HWND]
+    _user32.BringWindowToTop.restype = wintypes.BOOL
+    _user32.SetActiveWindow.argtypes = [wintypes.HWND]
+    _user32.SetActiveWindow.restype = wintypes.HWND
+    _user32.SetFocus.argtypes = [wintypes.HWND]
+    _user32.SetFocus.restype = wintypes.HWND
+    _user32.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
+    _user32.ShowWindow.restype = wintypes.BOOL
+    _user32.PostMessageW.argtypes = [
+        wintypes.HWND,
+        wintypes.UINT,
+        wintypes.WPARAM,
+        wintypes.LPARAM,
+    ]
+    _user32.PostMessageW.restype = wintypes.BOOL
     _user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
     _user32.GetWindowTextLengthW.restype = ctypes.c_int
     _user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
@@ -99,6 +122,10 @@ if sys.platform == "win32":
     _kernel32.QueryFullProcessImageNameW.restype = wintypes.BOOL
     _kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
     _kernel32.CloseHandle.restype = wintypes.BOOL
+    _kernel32.GetCurrentThreadId.argtypes = []
+    _kernel32.GetCurrentThreadId.restype = wintypes.DWORD
+    _user32.AttachThreadInput.argtypes = [wintypes.DWORD, wintypes.DWORD, wintypes.BOOL]
+    _user32.AttachThreadInput.restype = wintypes.BOOL
 
 
 def enable_dpi_awareness() -> None:
@@ -144,6 +171,19 @@ class WindowLocator:
     def _normalize_process_name(process_name: str) -> str:
         name = Path(process_name).name.casefold()
         return name if name.endswith(".exe") else f"{name}.exe"
+
+    @classmethod
+    def _matches_window_identity(
+        cls,
+        window: GameWindow,
+        process_name: str,
+        title_contains: Optional[str],
+    ) -> bool:
+        """Prefer an authoritative process name over a title fallback."""
+
+        if window.process_name is not None:
+            return cls._normalize_process_name(window.process_name) == process_name
+        return bool(title_contains and title_contains in window.title.casefold())
 
     def _get_process_name(self, process_id: int) -> Optional[str]:
         if process_id in self._process_names:
@@ -242,12 +282,11 @@ class WindowLocator:
     def find(self) -> GameWindow:
         candidates = []
         for window in self.list_windows():
-            process_matches = (
-                window.process_name is not None
-                and self._normalize_process_name(window.process_name) == self.process_name
-            )
-            title_matches = self.title_contains and self.title_contains in window.title.casefold()
-            if not process_matches and not title_matches:
+            if not self._matches_window_identity(
+                window,
+                self.process_name,
+                self.title_contains,
+            ):
                 continue
             if window.client_rect.width < self.min_client_width:
                 continue
@@ -276,3 +315,53 @@ class WindowLocator:
             if current.handle == window.handle:
                 return current
         raise WindowNotFoundError(f"Game window no longer exists: handle={window.handle}")
+
+    def activate(self, window: GameWindow) -> GameWindow:
+        """Bring the exact located window to the foreground before input."""
+
+        current = self.refresh(window)
+        if current.is_minimized:
+            _user32.ShowWindow(current.handle, 9)  # SW_RESTORE
+            current = self.refresh(current)
+        foreground = _user32.GetForegroundWindow()
+        if foreground != current.handle:
+            current_thread = _kernel32.GetCurrentThreadId()
+            foreground_thread = _user32.GetWindowThreadProcessId(foreground, None)
+            target_thread = _user32.GetWindowThreadProcessId(current.handle, None)
+            attached_threads = []
+            try:
+                for thread_id in {foreground_thread, target_thread}:
+                    if thread_id and thread_id != current_thread:
+                        if _user32.AttachThreadInput(current_thread, thread_id, True):
+                            attached_threads.append(thread_id)
+                _user32.BringWindowToTop(current.handle)
+                _user32.SetActiveWindow(current.handle)
+                _user32.SetForegroundWindow(current.handle)
+                _user32.SetFocus(current.handle)
+            finally:
+                for thread_id in attached_threads:
+                    _user32.AttachThreadInput(current_thread, thread_id, False)
+        if _user32.GetForegroundWindow() != current.handle:
+            raise WindowActivationError(
+                f"Windows did not activate the game window: handle={current.handle}"
+            )
+        return self.refresh(current)
+
+    def post_client_click(self, window: GameWindow, point: Tuple[int, int]) -> GameWindow:
+        """Post a client-relative left click directly to the target HWND."""
+
+        current = self.refresh(window)
+        x, y = point
+        if not (0 <= x < current.client_rect.width and 0 <= y < current.client_rect.height):
+            raise ValueError(f"Point lies outside the game client area: {point}")
+        packed_point = (y & 0xFFFF) << 16 | (x & 0xFFFF)
+        messages = (
+            (0x0200, 0),  # WM_MOUSEMOVE
+            (0x0201, 0x0001),  # WM_LBUTTONDOWN, MK_LBUTTON
+            (0x0202, 0),  # WM_LBUTTONUP
+        )
+        for message, flags in messages:
+            if not _user32.PostMessageW(current.handle, message, flags, packed_point):
+                error = ctypes.get_last_error()
+                raise OSError(error, f"PostMessageW failed for message {message:#x}")
+        return current

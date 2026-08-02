@@ -47,6 +47,9 @@ class WindowCapture:
         if self.method == "window":
             image = self._capture_window(current)
         elif self.method == "desktop":
+            # Desktop pixels are authoritative for Unity, but only after the
+            # located game window has been brought above overlapping windows.
+            current = self.locator.activate(current)
             image = self._capture_desktop(current)
         else:
             raise WindowCaptureError(f"Unsupported capture method: {self.method}")

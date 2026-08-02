@@ -11,7 +11,13 @@ from bot.hiring.config import HiringConfigError, load_hiring_config, parse_hirin
 class HiringCatalogTests(unittest.TestCase):
     def test_catalog_contains_all_provided_classes_and_skills(self):
         self.assertEqual(21, sum(len(classes) for classes in HERO_CLASSES.values()))
-        self.assertEqual(39, len(SKILLS))
+        self.assertEqual(58, len(SKILLS))
+        self.assertEqual("epic", SKILLS["adept"].rarity)
+        self.assertEqual("epic", SKILLS["double_cast"].rarity)
+        self.assertEqual("rare", SKILLS["all_natural"].rarity)
+        self.assertEqual("epic", SKILLS["death_dealer"].rarity)
+        self.assertEqual("usual", SKILLS["dagger_master"].rarity)
+        self.assertEqual("usual", SKILLS["shield_master"].rarity)
 
 
 class HiringConfigTests(unittest.TestCase):
@@ -20,7 +26,8 @@ class HiringConfigTests(unittest.TestCase):
             "window": {
                 "process_name": "ShopTitan.exe",
                 "title_contains": "Shop Titans",
-                "capture_method": "window",
+                "capture_method": "desktop",
+                "input_method": "foreground_mouse",
                 "min_client_width": 640,
                 "min_client_height": 480,
             },
@@ -43,9 +50,30 @@ class HiringConfigTests(unittest.TestCase):
         self.assertEqual("warrior", config.category)
         self.assertEqual("soldier", config.hero_class)
         self.assertEqual("ShopTitan.exe", config.window.process_name)
-        self.assertEqual("window", config.window.capture_method)
+        self.assertEqual("desktop", config.window.capture_method)
+        self.assertEqual("foreground_mouse", config.window.input_method)
         self.assertEqual(1_000_000, config.limits.max_gold_spent)
         self.assertEqual(4, len(config.allowed_skills))
+
+    def test_parses_requested_druid_configuration(self):
+        data = self.valid_data()
+        data["hiring"].update(
+            {
+                "category": "spellcaster",
+                "class": "druid",
+                "allowed_skills": [
+                    "adept",
+                    "death_dealer",
+                    "double_cast",
+                    "all_natural",
+                ],
+            }
+        )
+
+        config = parse_hiring_config(data)
+
+        self.assertEqual("spellcaster", config.category)
+        self.assertEqual("druid", config.hero_class)
 
     def test_unknown_skill_fails_before_runtime(self):
         data = self.valid_data()
